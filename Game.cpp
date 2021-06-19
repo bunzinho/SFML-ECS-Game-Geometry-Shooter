@@ -282,6 +282,17 @@ void Game::sCollision()
                 e->destroy();
             }
         }
+
+        for (const auto e : m_entities.getEntities("smallenemy"))
+        {
+            Vec2 d = (b->cTransform->pos - e->cTransform->pos);
+            float r = b->cCollision->radius + e->cCollision->radius;
+            if (d.x * d.x + d.y * d.y < r * r)
+            {
+                b->destroy();
+                e->destroy();
+            }
+        }
     }
 
     // bounce the enemies off the edge of the screen
