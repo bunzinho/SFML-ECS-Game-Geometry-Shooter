@@ -148,7 +148,7 @@ void Game::spawnEnemy()
     entity->cTransform = std::make_shared<CTransform>(spawnPosition, Vec2(cosf(angle), sinf(angle)).normalized()*speed, 0.0f);
 
     auto outline = sf::Color(m_enemyConfig.outline_r, m_enemyConfig.outline_g, m_enemyConfig.outline_b);
-    entity->cShape = std::make_shared<CShape>(m_enemyConfig.shapeRadius, vertices, sf::Color(10, 10, 10), outline, m_enemyConfig.outlineThickness);
+    entity->cShape = std::make_shared<CShape>(m_enemyConfig.shapeRadius, vertices, sf::Color(rand()%255, rand()%255, rand()%255), outline, m_enemyConfig.outlineThickness);
     entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.collisionRadius);
     m_lastEnemySpawnTime = m_currentFrame;
 }
@@ -167,7 +167,7 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> e)
 
     //auto outline = sf::Color(m_enemyConfig.outline_r, m_enemyConfig.outline_g, m_enemyConfig.outline_b);
     auto outlineColor = e->cShape->circle.getOutlineColor();
-    entity->cShape = std::make_shared<CShape>(m_enemyConfig.shapeRadius/2, e->cShape->circle.getPointCount(), sf::Color(10, 10, 10), outlineColor, m_enemyConfig.outlineThickness);
+    entity->cShape = std::make_shared<CShape>(m_enemyConfig.shapeRadius/2, e->cShape->circle.getPointCount(), e->cShape->circle.getFillColor(), outlineColor, m_enemyConfig.outlineThickness);
     entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.collisionRadius);
     entity->cLifespan = std::make_shared<CLifespan>(m_enemyConfig.lifetime, m_currentFrame);
     }
