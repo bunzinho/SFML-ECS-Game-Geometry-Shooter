@@ -308,8 +308,20 @@ void Game::sCollision()
             e->cTransform->velocity.y *= -1;
         }
     }
-    // TODO: implement all proper collisions between entities
-    //       be sure to use the collision radius, NOT the shape radius
+
+    // bounce the small enemies off the edge of the screen
+    for (const auto e : m_entities.getEntities("smallenemy"))
+    {
+        auto window_size = m_window.getSize();
+        if (e->cTransform->pos.x < 0 + e->cShape->circle.getRadius() || e->cTransform->pos.x > window_size.x - e->cShape->circle.getRadius())
+        {
+            e->cTransform->velocity.x *= -1;
+        }
+        if (e->cTransform->pos.y < 0 + e->cShape->circle.getRadius() || e->cTransform->pos.y > window_size.y - e->cShape->circle.getRadius())
+        {
+            e->cTransform->velocity.y *= -1;
+        }
+    }
 }
 
 void Game::sEnemySpawner()
