@@ -28,12 +28,14 @@ class Game
     void init(const std::string& config);  // initialize the GameState with a config file path
     void setPaused(bool paused);            // pause the game
 
-    void sMovement();                       // Systemn: Entity position / movement update
-    void sUserInput();                      // Systeem: User Input
+    void sMovement();                       // System: Entity position / movement update
+    void sUserInput();                      // System: User Input
     void sLifespan();                       // System: Lifespan
     void sRender();                         // System: Render / Drawing
     void sEnemySpawner();                   // System: Spawns Enemies
     void sCollision();                      // System: Collisions
+
+    void lifeSpanFade(std::shared_ptr<Entity> entity);
 
     void spawnPlayer();
     void spawnEnemy();

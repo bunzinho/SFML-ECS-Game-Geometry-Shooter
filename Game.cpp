@@ -227,21 +227,25 @@ void Game::sMovement()
 	}
 }
 
+void Game::lifeSpanFade(std::shared_ptr<Entity> e)
+{
+    auto const color = e->cShape->circle.getFillColor();
+    auto const outline = e->cShape->circle.getOutlineColor();
+
+    auto const time_remaining = (e->cLifespan->frameCreated + e->cLifespan->lifespan) - m_currentFrame;
+    auto const percent = static_cast<float>(time_remaining) / static_cast<float>(e->cLifespan->lifespan);
+
+    e->cShape->circle.setFillColor(sf::Color(color.r, color.g, color.b, static_cast<sf::Uint8>(255 * percent)));
+    e->cShape->circle.setOutlineColor(sf::Color(outline.r, outline.g, outline.b, static_cast<sf::Uint8>(255 * percent)));
+}
+
 void Game::sLifespan()
 {
     for (const auto e : m_entities.getEntities("bullet"))
     {
         if (e->cLifespan && e->isActive())
         {
-            auto const color = e->cShape->circle.getFillColor();
-            auto const outline = e->cShape->circle.getOutlineColor();
-
-            auto const time_remaining = (e->cLifespan->frameCreated + e->cLifespan->lifespan) - m_currentFrame;
-            auto const percent = static_cast<float>(time_remaining) / static_cast<float>(e->cLifespan->lifespan);
-
-            e->cShape->circle.setFillColor(sf::Color(color.r, color.g, color.b, static_cast<sf::Uint8>(255*percent)));
-            e->cShape->circle.setOutlineColor(sf::Color(outline.r, outline.g, outline.b, static_cast<sf::Uint8>(255*percent)));
-
+            lifeSpanFade(e);
             if (m_currentFrame >= e->cLifespan->lifespan + e->cLifespan->frameCreated)
             {
                 e->destroy();
@@ -251,9 +255,13 @@ void Game::sLifespan()
 
     for (const auto e : m_entities.getEntities("smallenemy"))
     {
-        if (m_currentFrame >= e->cLifespan->lifespan + e->cLifespan->frameCreated)
+        if (e->cLifespan && e->isActive())
         {
-            e->destroy();
+            lifeSpanFade(e);
+            if (m_currentFrame >= e->cLifespan->lifespan + e->cLifespan->frameCreated)
+            {
+                e->destroy();
+            }
         }
     }
 }
