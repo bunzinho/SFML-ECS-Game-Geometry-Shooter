@@ -111,6 +111,7 @@ void Game::spawnPlayer()
     auto player_color = sf::Color(m_playerConfig.color_r, m_playerConfig.color_g, m_playerConfig.color_b);
     auto player_outline = sf::Color(m_playerConfig.outline_r, m_playerConfig.outline_g, m_playerConfig.outline_b);
     entity->cShape = std::make_shared<CShape>(m_playerConfig.shapeRadius, m_playerConfig.vertices, player_color, player_outline, m_playerConfig.outlineThickness);
+    entity->cCollision = std::make_shared<CCollision>(m_playerConfig.collisionRadius);
 
     // Add an input component to the player so that we can use inputs
     entity->cInput = std::make_shared<CInput>();
@@ -268,6 +269,22 @@ void Game::sLifespan()
 
 void Game::sCollision()
 {
+    if (m_player->cTransform->pos.x < 0 + m_player->cCollision->radius)
+    {
+        m_player->cTransform->pos.x = 0 + m_player->cCollision->radius;
+    }
+    if (m_player->cTransform->pos.x - m_player->cCollision->radius > m_window.getSize().x - m_player->cCollision->radius)
+    {
+        m_player->cTransform->pos.x = m_window.getSize().x - m_player->cCollision->radius;
+    }
+    if (m_player->cTransform->pos.y < 0 + m_player->cCollision->radius)
+    {
+        m_player->cTransform->pos.y = 0 + m_player->cCollision->radius;
+    }
+    if (m_player->cTransform->pos.y > m_window.getSize().y - m_player->cCollision->radius)
+    {
+        m_player->cTransform->pos.y = m_window.getSize().y - m_player->cCollision->radius;
+    }
     // check bullet vs enemy collisions and destory them
     for (const auto b : m_entities.getEntities("bullet"))
     {
