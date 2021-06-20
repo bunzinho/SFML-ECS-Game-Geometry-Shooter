@@ -158,18 +158,19 @@ void Game::spawnEnemy()
 void Game::spawnSmallEnemies(std::shared_ptr<Entity> e)
 {
     auto speed = m_enemyConfig.speedMin + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (m_enemyConfig.speedMax - m_enemyConfig.speedMin)));
-
-    for (int i = 0; i < e->cShape->circle.getPointCount(); ++i)
+    auto vertices = e->cShape->circle.getPointCount();
+    for (int i = 0; i < vertices; ++i)
     {
     auto entity = m_entities.addEntity("smallenemy");
-    auto angle = rand();
+    //auto angle = rand();
+    auto angle = ((2 * 3.14159) / (vertices)) * i;
 
     entity->cTransform = std::make_shared<CTransform>(e->cTransform->pos, Vec2(cosf(angle), sinf(angle)).normalized() * speed, 0.0f);
 
     //auto outline = sf::Color(m_enemyConfig.outline_r, m_enemyConfig.outline_g, m_enemyConfig.outline_b);
     auto outlineColor = e->cShape->circle.getOutlineColor();
     entity->cShape = std::make_shared<CShape>(m_enemyConfig.shapeRadius/2, e->cShape->circle.getPointCount(), e->cShape->circle.getFillColor(), outlineColor, m_enemyConfig.outlineThickness);
-    entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.collisionRadius);
+    entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.collisionRadius/2);
     entity->cLifespan = std::make_shared<CLifespan>(m_enemyConfig.lifetime, m_currentFrame);
     }
 
@@ -273,7 +274,7 @@ void Game::sCollision()
     {
         m_player->cTransform->pos.x = 0 + m_player->cCollision->radius;
     }
-    if (m_player->cTransform->pos.x - m_player->cCollision->radius > m_window.getSize().x - m_player->cCollision->radius)
+    if (m_player->cTransform->pos.x + m_player->cCollision->radius > m_window.getSize().x)
     {
         m_player->cTransform->pos.x = m_window.getSize().x - m_player->cCollision->radius;
     }
@@ -285,6 +286,7 @@ void Game::sCollision()
     {
         m_player->cTransform->pos.y = m_window.getSize().y - m_player->cCollision->radius;
     }
+
     // check bullet vs enemy collisions and destory them
     for (const auto b : m_entities.getEntities("bullet"))
     {
