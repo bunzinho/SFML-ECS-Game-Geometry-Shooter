@@ -131,31 +131,44 @@ void Game::spawnEnemy()
     //       the enemy must be spawned completely within the bounds of the window
     //
     
-    // record when the most recent enemy was spawned
-    auto entity = m_entities.addEntity("enemy");
+	// record when the most recent enemy was spawned
 	auto speed = m_enemyConfig.speedMin + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (m_enemyConfig.speedMax - m_enemyConfig.speedMin)));
 
 
-    auto minX = m_enemyConfig.shapeRadius;
-    auto maxX = m_window.getSize().x - m_enemyConfig.shapeRadius;
-    auto minY = m_enemyConfig.shapeRadius;
-    auto maxY = m_window.getSize().y - m_enemyConfig.shapeRadius;
+	auto minX = m_enemyConfig.shapeRadius;
+	auto maxX = m_window.getSize().x - m_enemyConfig.shapeRadius;
+	auto minY = m_enemyConfig.shapeRadius;
+	auto maxY = m_window.getSize().y - m_enemyConfig.shapeRadius;
 
-    auto xPos = (rand() % (maxX - minX + 1)) + minX;
-    auto yPos = (rand() % (maxY - minY + 1)) + minY;
-    auto spawnPosition = Vec2(xPos, yPos);
+	auto xPos = (rand() % (maxX - minX + 1)) + minX;
+	auto yPos = (rand() % (maxY - minY + 1)) + minY;
+	auto spawnPosition = Vec2(xPos, yPos);
+    for (auto i = 0; i < 10; ++i)
+    {
+        Vec2 d = (spawnPosition - m_player->cTransform->pos);
+        float r = m_enemyConfig.collisionRadius + m_player->cCollision->radius + 20;
+        if (d.x * d.x + d.y * d.y < r * r)
+        {
+            std::cerr << "spawn collides with player, generating new spawn point" << std::endl;
+            xPos = (rand() % (maxX - minX + 1)) + minX;
+            yPos = (rand() % (maxY - minY + 1)) + minY;
+            spawnPosition = Vec2(xPos, yPos);
+        }
+        break;
+    }
 
-    auto vertices = (rand() % (m_enemyConfig.verticiesMax - m_enemyConfig.verticiesMin + 1)) + m_enemyConfig.verticiesMin;
+	auto vertices = (rand() % (m_enemyConfig.verticiesMax - m_enemyConfig.verticiesMin + 1)) + m_enemyConfig.verticiesMin;
+	auto angle = rand();
 
-    auto angle = rand();
+	auto entity = m_entities.addEntity("enemy");
 
-    entity->cTransform = std::make_shared<CTransform>(spawnPosition, Vec2(cosf(angle), sinf(angle)).normalized()*speed, 0.0f);
+	entity->cTransform = std::make_shared<CTransform>(spawnPosition, Vec2(cosf(angle), sinf(angle)).normalized() * speed, 0.0f);
 
-    auto outline = sf::Color(m_enemyConfig.outline_r, m_enemyConfig.outline_g, m_enemyConfig.outline_b);
-    entity->cShape = std::make_shared<CShape>(m_enemyConfig.shapeRadius, vertices, sf::Color(rand()%255, rand()%255, rand()%255), outline, m_enemyConfig.outlineThickness);
-    entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.collisionRadius);
-    entity->cScore = std::make_shared<CScore>(vertices*100);
-    m_lastEnemySpawnTime = m_currentFrame;
+	auto outline = sf::Color(m_enemyConfig.outline_r, m_enemyConfig.outline_g, m_enemyConfig.outline_b);
+	entity->cShape = std::make_shared<CShape>(m_enemyConfig.shapeRadius, vertices, sf::Color(rand() % 255, rand() % 255, rand() % 255), outline, m_enemyConfig.outlineThickness);
+	entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.collisionRadius);
+	entity->cScore = std::make_shared<CScore>(vertices * 100);
+	m_lastEnemySpawnTime = m_currentFrame;
 }
 
 // spawns the small enemies when a big one (input entity e) explodes
