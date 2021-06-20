@@ -35,6 +35,7 @@ class Game
     void sEnemySpawner();                   // System: Spawns Enemies
     void sCollision();                      // System: Collisions
 
+    bool checkCollision(std::shared_ptr<Entity> entity, std::shared_ptr<Entity> entity2);
     void lifeSpanFade(std::shared_ptr<Entity> entity);
 
     void spawnPlayer();

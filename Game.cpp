@@ -268,6 +268,17 @@ void Game::sLifespan()
     }
 }
 
+bool Game::checkCollision(std::shared_ptr<Entity> e, std::shared_ptr<Entity> e2)
+{
+    Vec2 d = (e2->cTransform->pos - e->cTransform->pos);
+    float r = e2->cCollision->radius + e->cCollision->radius;
+    if (d.x * d.x + d.y * d.y < r * r)
+    {
+        return true;
+    }
+    return false;
+}
+
 void Game::sCollision()
 {
     if (m_player->cTransform->pos.x < 0 + m_player->cCollision->radius)
@@ -292,9 +303,7 @@ void Game::sCollision()
     {
         for (const auto e : m_entities.getEntities("enemy"))
         {
-            Vec2 d = (b->cTransform->pos - e->cTransform->pos);
-            float r = b->cCollision->radius + e->cCollision->radius;
-            if(d.x*d.x + d.y*d.y < r*r)
+            if(checkCollision(b, e))
             {
                 spawnSmallEnemies(e);
                 b->destroy();
@@ -304,9 +313,7 @@ void Game::sCollision()
 
         for (const auto e : m_entities.getEntities("smallenemy"))
         {
-            Vec2 d = (b->cTransform->pos - e->cTransform->pos);
-            float r = b->cCollision->radius + e->cCollision->radius;
-            if (d.x * d.x + d.y * d.y < r * r)
+            if (checkCollision(b, e))
             {
                 b->destroy();
                 e->destroy();
@@ -314,9 +321,17 @@ void Game::sCollision()
         }
     }
 
-    // bounce the enemies off the edge of the screen
+    // check enemy vs player collision and bounce the enemies off the edge of the screen
     for (const auto e : m_entities.getEntities("enemy"))
     {
+        if (checkCollision(m_player, e))
+        {
+            m_player->destroy();
+            spawnPlayer();
+            e->destroy();
+            spawnSmallEnemies(e);
+        }
+
         auto window_size = m_window.getSize();
         if (e->cTransform->pos.x < 0 + e->cShape->circle.getRadius() || e->cTransform->pos.x > window_size.x - e->cShape->circle.getRadius())
         {
@@ -328,9 +343,16 @@ void Game::sCollision()
         }
     }
 
-    // bounce the small enemies off the edge of the screen
+    // check small enemy vs player and bounce the small enemies off the edge of the screen
     for (const auto e : m_entities.getEntities("smallenemy"))
     {
+        if (checkCollision(m_player, e))
+        {
+            m_player->destroy();
+            spawnPlayer();
+            e->destroy();
+        }
+
         auto window_size = m_window.getSize();
         if (e->cTransform->pos.x < 0 + e->cShape->circle.getRadius() || e->cTransform->pos.x > window_size.x - e->cShape->circle.getRadius())
         {
