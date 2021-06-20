@@ -30,6 +30,9 @@ void Game::init(const std::string & path)
             } font = { "", 12, 127, 127, 127 };
             file >> font.path >> font.size >> font.r >> font.g >> font.b;
             m_font.loadFromFile(font.path);
+            m_text.setFont(m_font);
+            m_text.setCharacterSize(font.size);
+            m_text.setPosition(10, 10);
             m_text.setFillColor(sf::Color(font.r, font.g, font.b));
         }
         else if (option == "Player")
@@ -398,6 +401,10 @@ void Game::sRender()
     {
         renderEntity(e);
     }
+
+    m_text.setString("Score: " + std::to_string(m_score));
+    m_window.draw(m_text);
+
     m_window.display();
 }
 
