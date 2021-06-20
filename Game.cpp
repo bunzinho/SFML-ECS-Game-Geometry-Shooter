@@ -143,18 +143,24 @@ void Game::spawnEnemy()
 	auto xPos = (rand() % (maxX - minX + 1)) + minX;
 	auto yPos = (rand() % (maxY - minY + 1)) + minY;
 	auto spawnPosition = Vec2(xPos, yPos);
-    for (auto i = 0; i < 10; ++i)
+
+    for (auto i = 0; i <= 10; ++i)
     {
-        Vec2 d = (spawnPosition - m_player->cTransform->pos);
-        float r = m_enemyConfig.collisionRadius + m_player->cCollision->radius + 20;
-        if (d.x * d.x + d.y * d.y < r * r)
+        if (i == 10)
         {
-            std::cerr << "spawn collides with player, generating new spawn point" << std::endl;
-            xPos = (rand() % (maxX - minX + 1)) + minX;
-            yPos = (rand() % (maxY - minY + 1)) + minY;
-            spawnPosition = Vec2(xPos, yPos);
+            std::cerr << "could not find enemy spawn position after 10 tries" << std::endl;
+            return;
         }
-        break;
+        Vec2 d = (spawnPosition - m_player->cTransform->pos);
+        float r = m_enemyConfig.collisionRadius + m_player->cCollision->radius*4;
+        if (d.x * d.x + d.y * d.y > r * r)
+        {
+            break;
+        }
+        std::cerr << m_currentFrame << " spawn collides with player, generating new spawn point" << std::endl;
+        xPos = (rand() % (maxX - minX + 1)) + minX;
+        yPos = (rand() % (maxY - minY + 1)) + minY;
+        spawnPosition = Vec2(xPos, yPos);
     }
 
 	auto vertices = (rand() % (m_enemyConfig.verticiesMax - m_enemyConfig.verticiesMin + 1)) + m_enemyConfig.verticiesMin;
@@ -410,7 +416,7 @@ void Game::sRender()
     {
         renderEntity(e); 
     }
-	for (const auto e : m_entities.getEntities("bullet"))
+	for (const auto e : m_entities.getEntities("bullet") )
     {
         renderEntity(e);
     }
@@ -480,6 +486,10 @@ void Game::sUserInput()
             break;
 
         case sf::Event::MouseButtonPressed:
+            if (m_paused)
+            {
+                return;
+            }
             if (event.mouseButton.button == sf::Mouse::Left)
             {
                 //std::cout << "Left Mouse Button Clicked at (" << event.mouseButton.x << "," << event.mouseButton.y << ")\n";
