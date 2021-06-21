@@ -193,21 +193,31 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> e)
 void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2& target)
 {
 	auto bullet = m_entities.addEntity("bullet");
-
 	auto direction = target - entity->cTransform->pos;
-
-	bullet->cTransform = std::make_shared<CTransform>(entity->cTransform->pos, direction.normalized() * m_bulletConfig.speed, 0.0f);
-
 	auto bullet_color = sf::Color(m_bulletConfig.color_r, m_bulletConfig.color_g, m_bulletConfig.color_b);
 	auto bullet_outline = sf::Color(m_bulletConfig.outline_r, m_bulletConfig.outline_g, m_bulletConfig.outline_b);
+
 	bullet->cShape = std::make_shared<CShape>(m_bulletConfig.shapeRadius, m_bulletConfig.vertices, bullet_color, bullet_outline, m_bulletConfig.outlineThickness);
 	bullet->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.lifetime, m_currentFrame);
     bullet->cCollision = std::make_shared<CCollision>(m_bulletConfig.collisionRadius);
+	bullet->cTransform = std::make_shared<CTransform>(entity->cTransform->pos, direction.normalized() * m_bulletConfig.speed, 0.0f);
 }
 
 void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity)
 {
-    // TODO: implement your own special weapon
+    const auto bullets = 30;
+    for (int i = 0; i < bullets; ++i)
+    {
+        auto angle = ((2 * 3.14159f) / (bullets)) * i;
+        auto bullet = m_entities.addEntity("bullet");
+        auto bullet_color = sf::Color(230,20,120);
+        auto bullet_outline = sf::Color(30,220,215);
+
+        bullet->cShape = std::make_shared<CShape>(m_bulletConfig.shapeRadius, m_bulletConfig.vertices, bullet_color, bullet_outline, m_bulletConfig.outlineThickness);
+        bullet->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.lifetime, m_currentFrame);
+        bullet->cCollision = std::make_shared<CCollision>(m_bulletConfig.collisionRadius);
+        bullet->cTransform = std::make_shared<CTransform>(entity->cTransform->pos, Vec2(cosf(angle), sinf(angle)).normalized() * m_bulletConfig.speed, 0.0f);
+    }
 }
 
 void Game::sMovement()
@@ -457,6 +467,9 @@ void Game::sUserInput()
             case sf::Keyboard::F1:
                 m_paused = !m_paused;
                 break;
+            case sf::Keyboard::F2:
+                m_entities.clearEntitiesByTag("enemy");
+                break;
             }
             break;
 
@@ -491,8 +504,7 @@ void Game::sUserInput()
 
             else if (event.mouseButton.button == sf::Mouse::Right)
             {
-                //std::cout << "Right Mouse Button Clicked at (" << event.mouseButton.x << "," << event.mouseButton.y << ")\n";
-                // call spawnSpecialWeapon here
+                spawnSpecialWeapon(m_player);
             }
             break;
 
