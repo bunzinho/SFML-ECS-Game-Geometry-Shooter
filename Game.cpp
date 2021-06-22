@@ -76,15 +76,11 @@ void Game::init(const std::string & path)
 
 void Game::run()
 {
-    // TODO: add pause functionality in here
-    //       some systems should function while paused (rendering)
-    //       some systems shouldn't (movement / input)
     while (m_running)
     {
-        m_entities.update();
-
         if (m_paused == false)
         {
+            m_entities.update();
             sEnemySpawner();
             sMovement();
             sCollision();
@@ -93,9 +89,6 @@ void Game::run()
         }
         sUserInput();
         sRender();
-        
-        // increment the current frame
-        // may need to be moved when pause implemented
     }
 }
 
