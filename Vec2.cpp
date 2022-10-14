@@ -7,79 +7,91 @@ Vec2::Vec2()
 }
 
 Vec2::Vec2(float xin, float yin)
-    : x(xin), y(yin)
+	: x(xin), y(yin)
+{
+
+}
+
+Vec2::Vec2(float radians)
+	: x(cosf(radians)), y(sinf(radians))
 {
 
 }
 
 Vec2 Vec2::operator + (const Vec2& rhs) const
 {
-    return Vec2(x + rhs.x, y + rhs.y);
+	return Vec2(x + rhs.x, y + rhs.y);
 }
 
 Vec2 Vec2::operator - (const Vec2& rhs) const
 {
-    return Vec2(x - rhs.x, y - rhs.y);
+	return Vec2(x - rhs.x, y - rhs.y);
 }
 
 Vec2 Vec2::operator / (const float val) const
 {
-    return Vec2(x/val, y/val);
+	return Vec2(x / val, y / val);
 }
 
 Vec2 Vec2::operator * (const float val) const
 {
-    return Vec2(x*val, y*val);
+	return Vec2(x * val, y * val);
 }
 
 bool Vec2::operator == (const Vec2& rhs) const
 {
-    return x == rhs.x && y == rhs.y;
+	return x == rhs.x && y == rhs.y;
 }
 
 bool Vec2::operator != (const Vec2& rhs) const
 {
-    return x != rhs.x || y != rhs.y;
+	return x != rhs.x || y != rhs.y;
 }
 
 void Vec2::operator += (const Vec2& rhs)
 {
-    x += rhs.x;
-    y += rhs.y;
+	x += rhs.x;
+	y += rhs.y;
 }
 
 void Vec2::operator -= (const Vec2& rhs)
 {
-    x -= rhs.x;
-    y -= rhs.y;
+	x -= rhs.x;
+	y -= rhs.y;
 }
 
 void Vec2::operator *= (const float val)
 {
-    x *= val;
-    y *= val;
+	x *= val;
+	y *= val;
 }
 
 void Vec2::operator /= (const float val)
 {
-    x /= val;
-    y /= val;
+	x /= val;
+	y /= val;
 }
 
 float Vec2::distance(const Vec2& rhs) const
 {
-    return sqrtf((x - rhs.x) * (x - rhs.x) + (y - rhs.y) * (y - rhs.y));
+	return sqrtf((x - rhs.x) * (x - rhs.x) + (y - rhs.y) * (y - rhs.y));
 }
 
 Vec2 Vec2::normalized() const
 {
-    Vec2 v = *this;
-    auto length = v.x * v.x + v.y * v.y;
-    if (length != 0)
-    {
-        length = sqrtf(length);
-        v.x /= length;
-        v.y /= length;
-    }
-    return v;
+	Vec2 v = *this;
+
+	auto length = v.lengthSquared();
+	if (length > 0)
+	{
+		length = sqrtf(length);
+		v.x /= length;
+		v.y /= length;
+	}
+	return v;
+}
+
+float Vec2::lengthSquared() const
+{
+	return x * x + y * y;
 }

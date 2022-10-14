@@ -11,5 +11,6 @@
 #include <algorithm>
 
 #include "Vec2.h"
+#include "Mathf.h"
 
 template <class T> using ptr = std::shared_ptr<T>;
