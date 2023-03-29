@@ -1,4 +1,12 @@
 #include "Game.h"
+#include <chrono>
+
+double time_in_seconds()
+{
+	typedef std::chrono::high_resolution_clock hires_clock;
+	using namespace std::chrono;
+	return 0.001 * duration_cast<milliseconds>(hires_clock::now().time_since_epoch()).count();
+}
 
 Game::Game(const std::string& config)
 {
@@ -78,21 +86,45 @@ void Game::init(const std::string& path)
 
 void Game::run()
 {
+	double t = 0.0;
+	const double dt = 0.02;
+
+	double current_time = time_in_seconds();
+	double accumulator = 0.0;
+
 	while (m_running)
 	{
-		sUserInput();
+		
+
 		if (m_paused)
 		{
-			sRender();
+			sUserInput();
 			continue;
 		}
-		m_entities.update();
-		sEnemySpawner();
-		sMovement();
-		sCollision();
-		sLifespan();
-		sRender();
-		m_currentFrame++;
+		m_time.update_delta_time();
+
+		double new_time = time_in_seconds();
+		double frame_time = new_time - current_time;
+		current_time = new_time;
+
+		accumulator += frame_time;
+		auto test = m_time.should_integrate();
+		while (accumulator >= dt)
+		{
+			sUserInput();
+			m_entities.update();
+			//sEnemySpawner();
+			sMovement(dt);
+			sCollision();
+			sLifespan();
+			accumulator -= dt;
+			t += dt;
+			m_currentFrame++;
+		}
+		
+		const double alpha = accumulator / dt;
+
+		sRender(alpha);
 	}
 }
 
@@ -210,7 +242,7 @@ void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity)
 		auto bullet = m_entities.addEntity("bullet");
 		auto bullet_color = sf::Color(230, 20, 120);
 		auto bullet_outline = sf::Color(30, 220, 215);
-		const auto speed = 6.0f;
+		const auto speed = 360.0f;
 
 		bullet->cShape = std::make_shared<CShape>(m_bulletConfig.shapeRadius, m_bulletConfig.vertices, bullet_color, bullet_outline, m_bulletConfig.outlineThickness);
 		bullet->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.lifetime, m_currentFrame);
@@ -230,7 +262,7 @@ bool Game::checkCollision(std::shared_ptr<Entity> e, std::shared_ptr<Entity> e2)
 	return false;
 }
 
-void Game::sMovement()
+void Game::sMovement(double dt)
 {
 	auto playerDirection = Vec2();
 	if (m_player->cInput->left) {
@@ -250,7 +282,8 @@ void Game::sMovement()
 
 	for (const auto e : m_entities.getEntities())
 	{
-		e->cTransform->pos += e->cTransform->velocity;
+		e->cTransform->last_pos = e->cTransform->pos;
+		e->cTransform->pos += e->cTransform->velocity * dt;
 	}
 }
 
@@ -258,28 +291,31 @@ void Game::sLifespan()
 {
 	for (const auto e : m_entities.getEntities())
 	{
-		if (e->cLifespan && e->isActive())
+		if (!e->cLifespan || !e->isActive())
 		{
-			auto const startFrame = e->cLifespan->frameCreated;
-			auto const endFrame = startFrame + e->cLifespan->lifespan;
-			if (m_currentFrame >= endFrame)
-			{
-				e->destroy();
-			}
-			else
-			{
-				auto pct_time_remaining = InvLerp(endFrame, startFrame, m_currentFrame);
-
-				auto color = e->cShape->circle.getFillColor();
-				auto outline = e->cShape->circle.getOutlineColor();
-
-				color.a = 255 * pct_time_remaining;
-				outline.a = 255 * pct_time_remaining;
-
-				e->cShape->circle.setFillColor(color);
-				e->cShape->circle.setOutlineColor(outline);
-			}
+			continue;
 		}
+
+		auto const startFrame = e->cLifespan->frameCreated;
+		auto const endFrame = startFrame + e->cLifespan->lifespan;
+		if (m_currentFrame >= endFrame)
+		{
+			e->destroy();
+		}
+		else
+		{
+			auto pct_time_remaining = InvLerp(endFrame, startFrame, m_currentFrame);
+
+			auto color = e->cShape->circle.getFillColor();
+			auto outline = e->cShape->circle.getOutlineColor();
+
+			color.a = static_cast<sf::Uint8>(255 * pct_time_remaining);
+			outline.a = static_cast<sf::Uint8>(255 * pct_time_remaining);
+
+			e->cShape->circle.setFillColor(color);
+			e->cShape->circle.setOutlineColor(outline);
+		}
+		
 	}
 }
 
@@ -380,13 +416,20 @@ void Game::sEnemySpawner()
 	spawnEnemy();
 }
 
-void Game::sRender()
+void Game::sRender(double alpha)
 {
 	m_window.clear();
 
 	auto renderEntity = [&](std::shared_ptr<Entity> e)
 	{
-		e->cShape->circle.setPosition(e->cTransform->pos.x, e->cTransform->pos.y);
+		if (m_should_interpoloate_physics)
+		{
+			auto interpolated_position = e->cTransform->pos * alpha + e->cTransform->last_pos * (1.0 - alpha);
+			e->cShape->circle.setPosition(interpolated_position.x, interpolated_position.y);
+		}
+		else {
+			e->cShape->circle.setPosition(e->cTransform->pos.x, e->cTransform->pos.y);
+		}
 
 		e->cTransform->angle += 1.0f;
 		e->cShape->circle.setRotation(e->cTransform->angle);
@@ -457,6 +500,9 @@ void Game::sUserInput()
 				break;
 			case sf::Keyboard::F2:
 				m_entities.clearEntitiesByTag("enemy");
+				break;
+			case sf::Keyboard::F10:
+				m_should_interpoloate_physics = !m_should_interpoloate_physics;
 				break;
 			}
 			break;

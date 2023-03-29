@@ -81,7 +81,7 @@ Vec2 Vec2::normalized() const
 {
 	Vec2 v = *this;
 
-	auto length = v.lengthSquared();
+	auto length = x * x + y * y;
 	if (length > 0)
 	{
 		length = sqrtf(length);

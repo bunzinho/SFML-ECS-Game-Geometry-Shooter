@@ -3,6 +3,7 @@
 #include "Common.h"
 #include "Entity.h"
 #include "EntityManager.h"
+#include "Time.h"
 
 struct PlayerConfig { int shapeRadius, collisionRadius, color_r, color_g, color_b, outline_r, outline_g, outline_b, outlineThickness, vertices; float speed; };
 struct EnemyConfig { int shapeRadius, collisionRadius, outline_r, outline_g, outline_b, outlineThickness, verticiesMin, verticiesMax, lifetime, spawnInterval; float speedMin, speedMax; };
@@ -22,16 +23,18 @@ class Game
 	int                 m_lastEnemySpawnTime = 0;
 	bool                m_paused = false;   // whether we update game logic
 	bool                m_running = true;   // whether the game is running
+	bool                m_should_interpoloate_physics = true;
+	Time                m_time = Time();
 
 	std::shared_ptr<Entity> m_player;
 
-	void init(const std::string& config);  // initialize the GameState with a config file path
+	void init(const std::string& config);   // initialize the GameState with a config file path
 	void setPaused(bool paused);            // pause the game
 
-	void sMovement();                       // System: Entity position / movement update
+	void sMovement(double dt);              // System: Entity position / movement update
 	void sUserInput();                      // System: User Input
 	void sLifespan();                       // System: Lifespan
-	void sRender();                         // System: Render / Drawing
+	void sRender(double alpha);             // System: Render / Drawing
 	void sEnemySpawner();                   // System: Spawns Enemies
 	void sCollision();                      // System: Collisions
 	void sSinmovement();
