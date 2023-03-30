@@ -86,45 +86,31 @@ void Game::init(const std::string& path)
 
 void Game::run()
 {
-	double t = 0.0;
-	const double dt = 0.02;
-
-	double current_time = time_in_seconds();
-	double accumulator = 0.0;
-
 	while (m_running)
 	{
 		
 
-		if (m_paused)
-		{
-			sUserInput();
-			continue;
-		}
+		//if (m_paused)
+		//{
+		//	sUserInput();
+		//	continue;
+		//}
+
 		m_time.update_delta_time();
 
-		double new_time = time_in_seconds();
-		double frame_time = new_time - current_time;
-		current_time = new_time;
-
-		accumulator += frame_time;
-		auto test = m_time.should_integrate();
-		while (accumulator >= dt)
+		while (m_time.should_integrate())
 		{
 			sUserInput();
 			m_entities.update();
-			//sEnemySpawner();
-			sMovement(dt);
+			sEnemySpawner();
+			sMovement();
 			sCollision();
 			sLifespan();
-			accumulator -= dt;
-			t += dt;
+			m_time.update_accumulator();
 			m_currentFrame++;
 		}
 		
-		const double alpha = accumulator / dt;
-
-		sRender(alpha);
+		sRender();
 	}
 }
 
@@ -196,7 +182,7 @@ void Game::spawnEnemy()
 	entity->cShape = std::make_shared<CShape>(m_enemyConfig.shapeRadius, vertices, sf::Color(rand() % 255, rand() % 255, rand() % 255), outline, m_enemyConfig.outlineThickness);
 	entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.collisionRadius);
 	entity->cScore = std::make_shared<CScore>(vertices * 100);
-	m_lastEnemySpawnTime = m_currentFrame;
+	m_lastEnemySpawnTime = m_time.get_starting_physics_time();
 }
 
 // spawns the small enemies when a big one (input entity e) explodes
@@ -262,7 +248,7 @@ bool Game::checkCollision(std::shared_ptr<Entity> e, std::shared_ptr<Entity> e2)
 	return false;
 }
 
-void Game::sMovement(double dt)
+void Game::sMovement()
 {
 	auto playerDirection = Vec2();
 	if (m_player->cInput->left) {
@@ -283,7 +269,8 @@ void Game::sMovement(double dt)
 	for (const auto e : m_entities.getEntities())
 	{
 		e->cTransform->last_pos = e->cTransform->pos;
-		e->cTransform->pos += e->cTransform->velocity * dt;
+		e->cTransform->pos += e->cTransform->velocity * m_time.delta_time();
+		e->cTransform->angle += 60.0f * m_time.delta_time();
 	}
 }
 
@@ -409,14 +396,14 @@ void Game::sCollision()
 
 void Game::sEnemySpawner()
 {
-	if (m_currentFrame - m_lastEnemySpawnTime < m_enemyConfig.spawnInterval)
+	if (m_time.get_starting_physics_time() - m_lastEnemySpawnTime < m_enemyConfig.spawnInterval)
 	{
 		return;
 	}
 	spawnEnemy();
 }
 
-void Game::sRender(double alpha)
+void Game::sRender()
 {
 	m_window.clear();
 
@@ -424,14 +411,13 @@ void Game::sRender(double alpha)
 	{
 		if (m_should_interpoloate_physics)
 		{
-			auto interpolated_position = e->cTransform->pos * alpha + e->cTransform->last_pos * (1.0 - alpha);
+			auto interpolated_position = e->cTransform->pos * m_time.alpha() + e->cTransform->last_pos * (1.0 - m_time.alpha());
 			e->cShape->circle.setPosition(interpolated_position.x, interpolated_position.y);
 		}
 		else {
 			e->cShape->circle.setPosition(e->cTransform->pos.x, e->cTransform->pos.y);
 		}
 
-		e->cTransform->angle += 1.0f;
 		e->cShape->circle.setRotation(e->cTransform->angle);
 
 		m_window.draw(e->cShape->circle);

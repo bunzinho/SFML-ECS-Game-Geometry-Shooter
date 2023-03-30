@@ -4,11 +4,16 @@
 class Time
 {
 	double t = 0.0;
-	const double dt = 0.02;
+	const double dt = 0.05;
 
 	double current_time = time_in_seconds();
 	double accumulator = 0.0;
+
 public:
+	double get_starting_physics_time()
+	{
+		return current_time;
+	}
 	double delta_time()
 	{
 		return dt;
@@ -30,7 +35,6 @@ public:
 		double new_time = time_in_seconds();
 		double frame_time = new_time - current_time;
 		current_time = new_time;
-
 		accumulator += frame_time;
 	}
 

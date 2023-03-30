@@ -20,7 +20,7 @@ class Game
 	BulletConfig        m_bulletConfig;
 	int                 m_score = 0;
 	int                 m_currentFrame = 0;
-	int                 m_lastEnemySpawnTime = 0;
+	double              m_lastEnemySpawnTime = 0.0;
 	bool                m_paused = false;   // whether we update game logic
 	bool                m_running = true;   // whether the game is running
 	bool                m_should_interpoloate_physics = true;
@@ -31,10 +31,10 @@ class Game
 	void init(const std::string& config);   // initialize the GameState with a config file path
 	void setPaused(bool paused);            // pause the game
 
-	void sMovement(double dt);              // System: Entity position / movement update
+	void sMovement();                       // System: Entity position / movement update
 	void sUserInput();                      // System: User Input
 	void sLifespan();                       // System: Lifespan
-	void sRender(double alpha);             // System: Render / Drawing
+	void sRender();                         // System: Render / Drawing
 	void sEnemySpawner();                   // System: Spawns Enemies
 	void sCollision();                      // System: Collisions
 	void sSinmovement();
