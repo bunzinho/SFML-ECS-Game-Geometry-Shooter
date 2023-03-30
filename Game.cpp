@@ -86,6 +86,8 @@ void Game::init(const std::string& path)
 
 void Game::run()
 {
+	m_time.update_time();
+
 	while (m_running)
 	{
 		
@@ -100,6 +102,7 @@ void Game::run()
 
 		while (m_time.is_tick_ready())
 		{
+			//std::cout << m_currentFrame << " physics update" << std::endl;
 			sUserInput();
 			m_entities.update();
 			sEnemySpawner();
@@ -169,7 +172,7 @@ void Game::spawnEnemy()
 			std::cerr << "could not find enemy spawn position after 10 tries" << std::endl;
 			return;
 		}
-		std::cerr << m_currentFrame << " spawn collides with player, generating new spawn point" << std::endl;
+		std::cerr << m_time.get_game_time() << " spawn collides with player, generating new spawn point" << std::endl;
 	}
 
 	auto vertices = (rand() % (m_enemyConfig.verticiesMax - m_enemyConfig.verticiesMin + 1)) + m_enemyConfig.verticiesMin;
@@ -200,7 +203,7 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> e)
 		entity->cTransform = std::make_shared<CTransform>(e->cTransform->pos, Vec2(angle).normalized() * speed, 0);
 		entity->cShape = std::make_shared<CShape>(m_enemyConfig.shapeRadius / 2, e->cShape->circle.getPointCount(), e->cShape->circle.getFillColor(), e->cShape->circle.getOutlineColor(), m_enemyConfig.outlineThickness);
 		entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.collisionRadius / 2);
-		entity->cLifespan = std::make_shared<CLifespan>(m_enemyConfig.lifetime, m_currentFrame);
+		entity->cLifespan = std::make_shared<CLifespan>(m_enemyConfig.lifetime, m_time.get_game_time());
 		entity->cScore = std::make_shared<CScore>(vertices * 200);
 	}
 }
@@ -214,7 +217,7 @@ void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2& target)
 	auto bullet_outline = sf::Color(m_bulletConfig.outline_r, m_bulletConfig.outline_g, m_bulletConfig.outline_b);
 
 	bullet->cShape = std::make_shared<CShape>(m_bulletConfig.shapeRadius, m_bulletConfig.vertices, bullet_color, bullet_outline, m_bulletConfig.outlineThickness);
-	bullet->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.lifetime, m_currentFrame);
+	bullet->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.lifetime, m_time.get_game_time());
 	bullet->cCollision = std::make_shared<CCollision>(m_bulletConfig.collisionRadius);
 	bullet->cTransform = std::make_shared<CTransform>(entity->cTransform->pos, direction.normalized() * m_bulletConfig.speed, 0.0f);
 }
@@ -231,7 +234,7 @@ void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity)
 		const auto speed = 360.0f;
 
 		bullet->cShape = std::make_shared<CShape>(m_bulletConfig.shapeRadius, m_bulletConfig.vertices, bullet_color, bullet_outline, m_bulletConfig.outlineThickness);
-		bullet->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.lifetime, m_currentFrame);
+		bullet->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.lifetime, m_time.get_game_time());
 		bullet->cCollision = std::make_shared<CCollision>(m_bulletConfig.collisionRadius);
 		bullet->cTransform = std::make_shared<CTransform>(entity->cTransform->pos, Vec2(angle).normalized() * speed, 0.0f);
 	}
@@ -276,7 +279,7 @@ void Game::sMovement()
 
 void Game::sLifespan()
 {
-	for (const auto e : m_entities.getEntities())
+	for (const auto &e : m_entities.getEntities())
 	{
 		if (!e->cLifespan || !e->isActive())
 		{
@@ -285,13 +288,15 @@ void Game::sLifespan()
 
 		auto const startFrame = e->cLifespan->frameCreated;
 		auto const endFrame = startFrame + e->cLifespan->lifespan;
-		if (m_currentFrame >= endFrame)
+
+		if (m_time.get_game_time() >= endFrame)
 		{
 			e->destroy();
 		}
 		else
 		{
-			auto pct_time_remaining = InvLerp(endFrame, startFrame, m_currentFrame);
+			//std::cout << "start: " << startFrame << " end: " << endFrame << " game time: " << m_time.get_game_time() << std::endl;
+			auto pct_time_remaining = InvLerp(endFrame, startFrame, m_time.get_game_time());
 
 			auto color = e->cShape->circle.getFillColor();
 			auto outline = e->cShape->circle.getOutlineColor();
@@ -519,7 +524,7 @@ void Game::sUserInput()
 			if (event.mouseButton.button == sf::Mouse::Left)
 			{
 				//std::cout << "Left Mouse Button Clicked at (" << event.mouseButton.x << "," << event.mouseButton.y << ")\n";
-				spawnBullet(m_player, Vec2(event.mouseButton.x, event.mouseButton.y));
+				spawnBullet(m_player, Vec2(static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y)));
 			}
 			else if (event.mouseButton.button == sf::Mouse::Right)
 			{

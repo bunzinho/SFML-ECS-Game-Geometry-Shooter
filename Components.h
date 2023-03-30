@@ -48,9 +48,9 @@ public:
 class CLifespan 
 {
 public:
-    int lifespan     = 0;   // amount of total lifespan of the entity
-    int frameCreated = 0;   // when the lifespan component was created
-    CLifespan(int duration, int created) 
+    double lifespan     = 0.0;   // amount of total lifespan of the entity
+    double frameCreated = 0.0;   // when the lifespan component was created
+    CLifespan(double duration, double created) 
         : lifespan(duration), frameCreated(created) {}
 };
 

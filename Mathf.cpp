@@ -25,3 +25,29 @@ float InvLerp(const float a, const float b, const float v)
 	auto r = (v - a) / (b - a);
 	return Clamp01(r);
 }
+
+double Clamp01(double value)
+{
+	if (value < 0.0)
+	{
+		return 0.0;
+	}
+
+	if (value > 1.0)
+	{
+		return 1.0;
+	}
+
+	return value;
+}
+
+double Lerp(const double a, const double b, const double t)
+{
+	return (1.0 - t) * a + b * Clamp01(t);
+}
+
+double InvLerp(const double a, const double b, const double v)
+{
+	auto r = (v - a) / (b - a);
+	return Clamp01(r);
+}
