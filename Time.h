@@ -7,9 +7,15 @@ class Time
 	const double dt = 1.0/30.0;
 
 	double current_time = time_in_seconds();
+	double game_time = 0.0;
 	double accumulator = 0.0;
 
 public:
+	double get_game_time()
+	{
+		return t;
+	}
+
 	double get_starting_physics_time()
 	{
 		return current_time;
@@ -28,6 +34,11 @@ public:
 	{
 		accumulator -= dt;
 		t += dt;
+	}
+
+	void update_time()
+	{
+		current_time = time_in_seconds();
 	}
 
 	void update_delta_time()

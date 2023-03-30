@@ -89,12 +89,12 @@ void Game::run()
 	while (m_running)
 	{
 		
-
-		//if (m_paused)
-		//{
-		//	sUserInput();
-		//	continue;
-		//}
+		if (m_paused)
+		{
+			m_time.update_time();
+			sUserInput();
+			continue;
+		}
 
 		m_time.update_delta_time();
 
@@ -182,7 +182,7 @@ void Game::spawnEnemy()
 	entity->cShape = std::make_shared<CShape>(m_enemyConfig.shapeRadius, vertices, sf::Color(rand() % 255, rand() % 255, rand() % 255), outline, m_enemyConfig.outlineThickness);
 	entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.collisionRadius);
 	entity->cScore = std::make_shared<CScore>(vertices * 100);
-	m_lastEnemySpawnTime = m_time.get_starting_physics_time();
+	m_lastEnemySpawnTime = m_time.get_game_time();
 }
 
 // spawns the small enemies when a big one (input entity e) explodes
@@ -396,7 +396,7 @@ void Game::sCollision()
 
 void Game::sEnemySpawner()
 {
-	if (m_time.get_starting_physics_time() - m_lastEnemySpawnTime < m_enemyConfig.spawnInterval)
+	if (m_time.get_game_time() - m_lastEnemySpawnTime < m_enemyConfig.spawnInterval)
 	{
 		return;
 	}
