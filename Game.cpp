@@ -98,7 +98,7 @@ void Game::run()
 
 		m_time.update_delta_time();
 
-		while (m_time.should_integrate())
+		while (m_time.is_tick_ready())
 		{
 			sUserInput();
 			m_entities.update();

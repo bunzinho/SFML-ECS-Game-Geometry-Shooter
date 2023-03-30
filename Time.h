@@ -4,7 +4,7 @@
 class Time
 {
 	double t = 0.0;
-	const double dt = 0.05;
+	const double dt = 1.0/30.0;
 
 	double current_time = time_in_seconds();
 	double accumulator = 0.0;
@@ -19,7 +19,7 @@ public:
 		return dt;
 	}
 
-	bool should_integrate()
+	bool is_tick_ready()
 	{
 		return accumulator >= dt;
 	}
