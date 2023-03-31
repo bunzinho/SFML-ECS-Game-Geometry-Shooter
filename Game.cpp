@@ -1,13 +1,6 @@
 #include "Game.h"
 #include <chrono>
 
-double time_in_seconds()
-{
-	typedef std::chrono::high_resolution_clock hires_clock;
-	using namespace std::chrono;
-	return 0.001 * duration_cast<milliseconds>(hires_clock::now().time_since_epoch()).count();
-}
-
 Game::Game(const std::string& config)
 {
 	init(config);
@@ -90,7 +83,7 @@ void Game::run()
 
 	while (m_running)
 	{
-		
+
 		if (m_paused)
 		{
 			m_time.update_time();
@@ -112,7 +105,7 @@ void Game::run()
 			m_time.update_accumulator();
 			m_currentFrame++;
 		}
-		
+
 		sRender();
 	}
 }
@@ -127,7 +120,9 @@ void Game::spawnPlayer()
 {
 	auto entity = m_entities.addEntity("player");
 
-	entity->cTransform = std::make_shared<CTransform>(Vec2(m_window.getSize().x, m_window.getSize().y) * 0.5, Vec2(0.0f, 0.0f), 0.0f);
+	const auto position = Vec2(static_cast<float>(m_window.getSize().x * 0.5f), static_cast<float>((m_window.getSize().y) * 0.5f));
+
+	entity->cTransform = std::make_shared<CTransform>(position, Vec2(0.0f, 0.0f), 0.0f);
 
 	auto player_color = sf::Color(m_playerConfig.color_r, m_playerConfig.color_g, m_playerConfig.color_b);
 	auto player_outline = sf::Color(m_playerConfig.outline_r, m_playerConfig.outline_g, m_playerConfig.outline_b);
@@ -145,25 +140,26 @@ void Game::spawnPlayer()
 // spawn an enemy at a random position
 void Game::spawnEnemy()
 {
-	auto speed = m_enemyConfig.speedMin + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (m_enemyConfig.speedMax - m_enemyConfig.speedMin)));
+	auto speed = Lerp(m_enemyConfig.speedMin, m_enemyConfig.speedMax, random_float());
 
+	auto min_x = static_cast<float>(m_enemyConfig.shapeRadius);
+	auto max_x = static_cast<float>(m_window.getSize().x - m_enemyConfig.shapeRadius);
+	auto min_y = static_cast<float>(m_enemyConfig.shapeRadius);
+	auto max_y = static_cast<float>(m_window.getSize().y - m_enemyConfig.shapeRadius);
 
-	auto minX = m_enemyConfig.shapeRadius;
-	auto maxX = m_window.getSize().x - m_enemyConfig.shapeRadius;
-	auto minY = m_enemyConfig.shapeRadius;
-	auto maxY = m_window.getSize().y - m_enemyConfig.shapeRadius;
-
-	Vec2 spawnPosition;
+	Vec2 spawn_position;
 
 	for (auto i = 0; i < 10; i++)
 	{
-		auto xPos = (rand() % (maxX - minX + 1)) + minX;
-		auto yPos = (rand() % (maxY - minY + 1)) + minY;
-		spawnPosition = Vec2(xPos, yPos);
-		Vec2 d = (spawnPosition - m_player->cTransform->pos);
-		float r = m_enemyConfig.collisionRadius + m_player->cCollision->radius * 4;
+		float x_pos = Lerp(min_x, max_x, random_float());
+		float y_pos = Lerp(min_y, max_y, random_float());
 
-		if (d.lengthSquared() > r * r)
+		spawn_position = Vec2(x_pos, y_pos);
+		Vec2 d = (spawn_position - m_player->cTransform->pos);
+
+		float r = m_enemyConfig.collisionRadius + m_player->cCollision->radius * 5.0f;
+
+		if (d.length_squared() > r * r)
 		{
 			break;
 		}
@@ -175,34 +171,36 @@ void Game::spawnEnemy()
 		std::cerr << m_time.get_game_time() << " spawn collides with player, generating new spawn point" << std::endl;
 	}
 
-	auto vertices = (rand() % (m_enemyConfig.verticiesMax - m_enemyConfig.verticiesMin + 1)) + m_enemyConfig.verticiesMin;
-	auto angle = rand();
-
+	auto vertices = static_cast<int>(Lerp((float)m_enemyConfig.verticiesMin, (float)m_enemyConfig.verticiesMax, random_float()));
+	auto angle = 2.0f*pi * random_float();
 	auto outline = sf::Color(m_enemyConfig.outline_r, m_enemyConfig.outline_g, m_enemyConfig.outline_b);
+	auto color = sf::Color(static_cast<sf::Uint8>(random_float() * 255), static_cast<sf::Uint8>(random_float() * 255), static_cast<sf::Uint8>(random_float() * 255));
+
 
 	auto entity = m_entities.addEntity("enemy");
-	entity->cTransform = std::make_shared<CTransform>(spawnPosition, Vec2(angle).normalized() * speed, 0.0f);
-	entity->cShape = std::make_shared<CShape>(m_enemyConfig.shapeRadius, vertices, sf::Color(rand() % 255, rand() % 255, rand() % 255), outline, m_enemyConfig.outlineThickness);
+	entity->cTransform = std::make_shared<CTransform>(spawn_position, Vec2(angle).normalized() * speed, 0.0f);
+	entity->cShape = std::make_shared<CShape>( m_enemyConfig.shapeRadius, vertices, color, outline, m_enemyConfig.outlineThickness);
 	entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.collisionRadius);
 	entity->cScore = std::make_shared<CScore>(vertices * 100);
+
 	m_lastEnemySpawnTime = m_time.get_game_time();
 }
 
 // spawns the small enemies when a big one (input entity e) explodes
 void Game::spawnSmallEnemies(std::shared_ptr<Entity> e)
 {
-	auto speed = m_enemyConfig.speedMin + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (m_enemyConfig.speedMax - m_enemyConfig.speedMin)));
+	auto speed = Lerp(m_enemyConfig.speedMin, m_enemyConfig.speedMax, random_float());
 	auto vertices = e->cShape->circle.getPointCount();
 
-	auto angleIncrement = ((6.283185f) / (vertices));
-	for (int i = 0; i < vertices; ++i)
+	auto angleIncrement = ((2*pi) / (vertices));
+	for (size_t i = 0; i < vertices; ++i)
 	{
 		auto entity = m_entities.addEntity("smallenemy");
 		auto angle = angleIncrement * i;
 
 		entity->cTransform = std::make_shared<CTransform>(e->cTransform->pos, Vec2(angle).normalized() * speed, 0);
-		entity->cShape = std::make_shared<CShape>(m_enemyConfig.shapeRadius / 2, e->cShape->circle.getPointCount(), e->cShape->circle.getFillColor(), e->cShape->circle.getOutlineColor(), m_enemyConfig.outlineThickness);
-		entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.collisionRadius / 2);
+		entity->cShape = std::make_shared<CShape>(m_enemyConfig.shapeRadius * 0.5f, e->cShape->circle.getPointCount(), e->cShape->circle.getFillColor(), e->cShape->circle.getOutlineColor(), m_enemyConfig.outlineThickness);
+		entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.collisionRadius * 0.5f);
 		entity->cLifespan = std::make_shared<CLifespan>(m_enemyConfig.lifetime, m_time.get_game_time());
 		entity->cScore = std::make_shared<CScore>(vertices * 200);
 	}
@@ -216,7 +214,7 @@ void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2& target)
 	auto bullet_color = sf::Color(m_bulletConfig.color_r, m_bulletConfig.color_g, m_bulletConfig.color_b);
 	auto bullet_outline = sf::Color(m_bulletConfig.outline_r, m_bulletConfig.outline_g, m_bulletConfig.outline_b);
 
-	bullet->cShape = std::make_shared<CShape>(m_bulletConfig.shapeRadius, m_bulletConfig.vertices, bullet_color, bullet_outline, m_bulletConfig.outlineThickness);
+	bullet->cShape = std::make_shared<CShape>( m_bulletConfig.shapeRadius, m_bulletConfig.vertices, bullet_color, bullet_outline, m_bulletConfig.outlineThickness);
 	bullet->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.lifetime, m_time.get_game_time());
 	bullet->cCollision = std::make_shared<CCollision>(m_bulletConfig.collisionRadius);
 	bullet->cTransform = std::make_shared<CTransform>(entity->cTransform->pos, direction.normalized() * m_bulletConfig.speed, 0.0f);
@@ -244,7 +242,7 @@ bool Game::checkCollision(std::shared_ptr<Entity> e, std::shared_ptr<Entity> e2)
 {
 	Vec2 d = (e2->cTransform->pos - e->cTransform->pos);
 	float r = e2->cCollision->radius + e->cCollision->radius;
-	if (d.lengthSquared() < r * r)
+	if (d.length_squared() < r * r)
 	{
 		return true;
 	}
@@ -272,42 +270,41 @@ void Game::sMovement()
 	for (const auto e : m_entities.getEntities())
 	{
 		e->cTransform->last_pos = e->cTransform->pos;
-		e->cTransform->pos += e->cTransform->velocity * m_time.delta_time();
-		e->cTransform->angle += 60.0f * m_time.delta_time();
+		e->cTransform->pos += e->cTransform->velocity * static_cast<float>(m_time.delta_time());
+		e->cTransform->angle += 60.0f * static_cast<float>(m_time.delta_time());
 	}
 }
 
 void Game::sLifespan()
 {
-	for (const auto &e : m_entities.getEntities())
+	for (const auto& e : m_entities.getEntities())
 	{
 		if (!e->cLifespan || !e->isActive())
 		{
 			continue;
 		}
 
-		auto const startFrame = e->cLifespan->frameCreated;
-		auto const endFrame = startFrame + e->cLifespan->lifespan;
+		auto const start_frame = e->cLifespan->frameCreated;
+		auto const end_frame = start_frame + e->cLifespan->lifespan;
 
-		if (m_time.get_game_time() >= endFrame)
+		if (m_time.get_game_time() >= end_frame)
 		{
 			e->destroy();
+			continue;
 		}
-		else
-		{
-			//std::cout << "start: " << startFrame << " end: " << endFrame << " game time: " << m_time.get_game_time() << std::endl;
-			auto pct_time_remaining = InvLerp(endFrame, startFrame, m_time.get_game_time());
 
-			auto color = e->cShape->circle.getFillColor();
-			auto outline = e->cShape->circle.getOutlineColor();
+		auto t = InvLerp(end_frame, start_frame, m_time.get_game_time());
+		auto pct_time_remaining = 1.0 - std::pow(1.0-t, 6.0);
+			
 
-			color.a = static_cast<sf::Uint8>(255 * pct_time_remaining);
-			outline.a = static_cast<sf::Uint8>(255 * pct_time_remaining);
+		auto color = e->cShape->circle.getFillColor();
+		auto outline = e->cShape->circle.getOutlineColor();
 
-			e->cShape->circle.setFillColor(color);
-			e->cShape->circle.setOutlineColor(outline);
-		}
-		
+		color.a = static_cast<sf::Uint8>(255 * pct_time_remaining);
+		outline.a = static_cast<sf::Uint8>(255 * pct_time_remaining);
+
+		e->cShape->circle.setFillColor(color);
+		e->cShape->circle.setOutlineColor(outline);
 	}
 }
 
@@ -416,7 +413,8 @@ void Game::sRender()
 	{
 		if (m_should_interpoloate_physics)
 		{
-			auto interpolated_position = e->cTransform->pos * m_time.alpha() + e->cTransform->last_pos * (1.0 - m_time.alpha());
+			auto alpha = static_cast<float>(m_time.alpha());
+			auto interpolated_position = e->cTransform->pos * alpha + e->cTransform->last_pos * (1.0f - alpha);
 			e->cShape->circle.setPosition(interpolated_position.x, interpolated_position.y);
 		}
 		else {
@@ -464,8 +462,10 @@ void Game::sUserInput()
 			break;
 
 		case sf::Event::Resized:
-		{sf::FloatRect visibleArea(0, 0, event.size.width, event.size.height);
-		m_window.setView(sf::View(visibleArea)); }
+		{
+			sf::FloatRect visibleArea(0.0f, 0.0f, (float) event.size.width, (float) event.size.height);
+			m_window.setView(sf::View(visibleArea));
+		}
 		break;
 
 		case sf::Event::KeyPressed:

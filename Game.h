@@ -6,8 +6,8 @@
 #include "Time.h"
 
 struct PlayerConfig { int shapeRadius, collisionRadius, color_r, color_g, color_b, outline_r, outline_g, outline_b, outlineThickness, vertices; float speed; };
-struct EnemyConfig { int shapeRadius, collisionRadius, outline_r, outline_g, outline_b, outlineThickness, verticiesMin, verticiesMax; double lifetime, spawnInterval, speedMin, speedMax; };
-struct BulletConfig { int shapeRadius, collisionRadius, color_r, color_g, color_b, outline_r, outline_g, outline_b, outlineThickness, vertices; double lifetime, speed; };
+struct EnemyConfig { int shapeRadius, collisionRadius, outline_r, outline_g, outline_b, outlineThickness, verticiesMin, verticiesMax; double lifetime, spawnInterval; float speedMin, speedMax; };
+struct BulletConfig { int shapeRadius, collisionRadius, color_r, color_g, color_b, outline_r, outline_g, outline_b, outlineThickness, vertices; double lifetime; float speed; };
 
 class Game
 {

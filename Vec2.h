@@ -26,5 +26,6 @@ public:
 
 	float distance(const Vec2& rhs) const;
 	Vec2 normalized() const;
-	float lengthSquared() const;
+	float length() const;
+	float length_squared() const;
 };

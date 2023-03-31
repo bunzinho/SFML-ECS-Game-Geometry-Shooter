@@ -91,7 +91,12 @@ Vec2 Vec2::normalized() const
 	return v;
 }
 
-float Vec2::lengthSquared() const
+float Vec2::length_squared() const
 {
 	return x * x + y * y;
+}
+
+float Vec2::length() const
+{
+	return std::sqrt(x * x + y * y);
 }

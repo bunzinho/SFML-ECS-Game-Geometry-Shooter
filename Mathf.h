@@ -1,4 +1,14 @@
 #pragma once
+#include <random>
+
+constexpr float pi = 3.14159265358979323846f;
+
+inline float random_float()
+{
+	static std::uniform_real_distribution<float> distribution(0.0, 1.0);
+	static std::mt19937 generator;
+	return distribution(generator);
+}
 
 float Clamp01(const float v);
 float Lerp(const float a, const float b, const float t);
