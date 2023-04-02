@@ -3,7 +3,7 @@
 #include "Common.h"
 #include "Entity.h"
 #include "EntityManager.h"
-#include "Time.h"
+#include "Clock.h"
 
 struct PlayerConfig { int shapeRadius, collisionRadius, color_r, color_g, color_b, outline_r, outline_g, outline_b, outlineThickness, vertices; float speed; };
 struct EnemyConfig { int shapeRadius, collisionRadius, outline_r, outline_g, outline_b, outlineThickness, verticiesMin, verticiesMax; double lifetime, spawnInterval; float speedMin, speedMax; };
@@ -24,7 +24,7 @@ class Game
 	bool                m_paused = false;   // whether we update game logic
 	bool                m_running = true;   // whether the game is running
 	bool                m_should_interpoloate_physics = true;
-	Time                m_time = Time();
+	Clock               m_clock = Clock();
 
 	std::shared_ptr<Entity> m_player;
 

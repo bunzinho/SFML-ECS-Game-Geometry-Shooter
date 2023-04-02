@@ -79,31 +79,28 @@ void Game::init(const std::string& path)
 
 void Game::run()
 {
-	m_time.update_time();
+	m_clock.update_time();
 
 	while (m_running)
 	{
+		m_clock.update_delta_time();
 
 		if (m_paused)
 		{
-			m_time.update_time();
 			sUserInput();
 			continue;
 		}
 
-		m_time.update_delta_time();
-
-		while (m_time.is_tick_ready())
+		while (m_clock.is_tick_ready())
 		{
-			//std::cout << m_currentFrame << " physics update" << std::endl;
 			sUserInput();
 			m_entities.update();
 			sEnemySpawner();
 			sMovement();
 			sCollision();
 			sLifespan();
-			m_time.update_accumulator();
 			m_currentFrame++;
+			m_clock.update_accumulator();
 		}
 
 		sRender();
@@ -113,6 +110,7 @@ void Game::run()
 void Game::setPaused(bool paused)
 {
 	m_paused = paused;
+	m_clock.set_paused(paused);
 }
 
 // respawn the player in the middle of the screen
@@ -168,7 +166,7 @@ void Game::spawnEnemy()
 			std::cerr << "could not find enemy spawn position after 10 tries" << std::endl;
 			return;
 		}
-		std::cerr << m_time.get_game_time() << " spawn collides with player, generating new spawn point" << std::endl;
+		std::cerr << m_clock.get_game_time() << " spawn collides with player, generating new spawn point" << std::endl;
 	}
 
 	auto vertices = static_cast<int>(Lerp((float)m_enemyConfig.verticiesMin, (float)m_enemyConfig.verticiesMax, random_float()));
@@ -183,7 +181,7 @@ void Game::spawnEnemy()
 	entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.collisionRadius);
 	entity->cScore = std::make_shared<CScore>(vertices * 100);
 
-	m_lastEnemySpawnTime = m_time.get_game_time();
+	m_lastEnemySpawnTime = m_clock.get_game_time();
 }
 
 // spawns the small enemies when a big one (input entity e) explodes
@@ -201,7 +199,7 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> e)
 		entity->cTransform = std::make_shared<CTransform>(e->cTransform->pos, Vec2(angle).normalized() * speed, 0);
 		entity->cShape = std::make_shared<CShape>(m_enemyConfig.shapeRadius * 0.5f, e->cShape->circle.getPointCount(), e->cShape->circle.getFillColor(), e->cShape->circle.getOutlineColor(), m_enemyConfig.outlineThickness);
 		entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.collisionRadius * 0.5f);
-		entity->cLifespan = std::make_shared<CLifespan>(m_enemyConfig.lifetime, m_time.get_game_time());
+		entity->cLifespan = std::make_shared<CLifespan>(m_enemyConfig.lifetime, m_clock.get_game_time());
 		entity->cScore = std::make_shared<CScore>(vertices * 200);
 	}
 }
@@ -215,7 +213,7 @@ void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2& target)
 	auto bullet_outline = sf::Color(m_bulletConfig.outline_r, m_bulletConfig.outline_g, m_bulletConfig.outline_b);
 
 	bullet->cShape = std::make_shared<CShape>( m_bulletConfig.shapeRadius, m_bulletConfig.vertices, bullet_color, bullet_outline, m_bulletConfig.outlineThickness);
-	bullet->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.lifetime, m_time.get_game_time());
+	bullet->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.lifetime, m_clock.get_game_time());
 	bullet->cCollision = std::make_shared<CCollision>(m_bulletConfig.collisionRadius);
 	bullet->cTransform = std::make_shared<CTransform>(entity->cTransform->pos, direction.normalized() * m_bulletConfig.speed, 0.0f);
 }
@@ -232,7 +230,7 @@ void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity)
 		const auto speed = 360.0f;
 
 		bullet->cShape = std::make_shared<CShape>(m_bulletConfig.shapeRadius, m_bulletConfig.vertices, bullet_color, bullet_outline, m_bulletConfig.outlineThickness);
-		bullet->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.lifetime, m_time.get_game_time());
+		bullet->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.lifetime, m_clock.get_game_time());
 		bullet->cCollision = std::make_shared<CCollision>(m_bulletConfig.collisionRadius);
 		bullet->cTransform = std::make_shared<CTransform>(entity->cTransform->pos, Vec2(angle).normalized() * speed, 0.0f);
 	}
@@ -270,8 +268,8 @@ void Game::sMovement()
 	for (const auto e : m_entities.getEntities())
 	{
 		e->cTransform->last_pos = e->cTransform->pos;
-		e->cTransform->pos += e->cTransform->velocity * static_cast<float>(m_time.delta_time());
-		e->cTransform->angle += 60.0f * static_cast<float>(m_time.delta_time());
+		e->cTransform->pos += e->cTransform->velocity * static_cast<float>(m_clock.delta_time());
+		e->cTransform->angle += 60.0f * static_cast<float>(m_clock.delta_time());
 	}
 }
 
@@ -287,15 +285,14 @@ void Game::sLifespan()
 		auto const start_frame = e->cLifespan->frameCreated;
 		auto const end_frame = start_frame + e->cLifespan->lifespan;
 
-		if (m_time.get_game_time() >= end_frame)
+		if (m_clock.get_game_time() >= end_frame)
 		{
 			e->destroy();
 			continue;
 		}
 
-		auto t = InvLerp(end_frame, start_frame, m_time.get_game_time());
+		auto t = InvLerp(end_frame, start_frame, m_clock.get_game_time());
 		auto pct_time_remaining = 1.0 - std::pow(1.0-t, 6.0);
-			
 
 		auto color = e->cShape->circle.getFillColor();
 		auto outline = e->cShape->circle.getOutlineColor();
@@ -398,7 +395,7 @@ void Game::sCollision()
 
 void Game::sEnemySpawner()
 {
-	if (m_time.get_game_time() - m_lastEnemySpawnTime < m_enemyConfig.spawnInterval)
+	if (m_clock.get_game_time() - m_lastEnemySpawnTime < m_enemyConfig.spawnInterval)
 	{
 		return;
 	}
@@ -413,7 +410,7 @@ void Game::sRender()
 	{
 		if (m_should_interpoloate_physics)
 		{
-			auto alpha = static_cast<float>(m_time.alpha());
+			auto alpha = static_cast<float>(m_clock.alpha());
 			auto interpolated_position = e->cTransform->pos * alpha + e->cTransform->last_pos * (1.0f - alpha);
 			e->cShape->circle.setPosition(interpolated_position.x, interpolated_position.y);
 		}
@@ -487,7 +484,7 @@ void Game::sUserInput()
 				m_running = false;
 				break;
 			case sf::Keyboard::F1:
-				m_paused = !m_paused;
+				setPaused(m_paused = !m_paused);
 				break;
 			case sf::Keyboard::F2:
 				m_entities.clearEntitiesByTag("enemy");
