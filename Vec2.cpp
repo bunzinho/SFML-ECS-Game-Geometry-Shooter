@@ -100,3 +100,8 @@ float Vec2::length() const
 {
 	return std::sqrt(x * x + y * y);
 }
+
+Vec2 Vec2::Lerp(const Vec2& a, const Vec2& b, const float t)
+{
+	return a * (1.0f - t) + b * t;
+}

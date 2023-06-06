@@ -28,4 +28,6 @@ public:
 	Vec2 normalized() const;
 	float length() const;
 	float length_squared() const;
+
+	static Vec2 Lerp(const Vec2& a, const Vec2& b, const float t);
 };
