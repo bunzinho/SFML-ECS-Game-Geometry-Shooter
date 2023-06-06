@@ -2,4 +2,5 @@
 Debug/
 Release/
 bin/
-Binaries/
+Binaries/*.exe
+Binaries/*.pdb
