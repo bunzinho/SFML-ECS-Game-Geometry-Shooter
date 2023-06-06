@@ -1,13 +1,16 @@
 #pragma once
 #include <chrono>
 
-typedef std::chrono::high_resolution_clock hires_clock;
-
 class Clock
 {
+	typedef std::chrono::high_resolution_clock hires_clock;
+
+private:
+
 	hires_clock::time_point initial_time = hires_clock::now();
 	double t = 0.0;
 	const double dt = 1.0/30;
+	double frame_time = 0.0;
 	double time_scale = 1.0;
 
 	bool paused = false;
@@ -16,74 +19,27 @@ class Clock
 
 public:
 
-	void set_paused(bool pause)
-	{
-		paused = pause;
-	}
+	double get_frame_time();
 
-	bool is_paused() const
-	{
-		return paused;
-	}
+	void set_paused(bool pause);
 
-	double get_game_time()
-	{
-		return t;
-	}
+	bool is_paused() const;
 
-	double get_starting_physics_time()
-	{
-		return current_time;
-	}
+	double get_game_time();
 
-	double delta_time()
-	{
-		return dt;
-	}
+	double get_starting_physics_time();
 
-	bool is_tick_ready()
-	{
-		return accumulator >= dt;
-	}
+	double delta_time();
 
-	void update_accumulator()
-	{
-		accumulator -= dt;
-		t += dt;
-	}
+	bool is_tick_ready();
 
-	void update_time()
-	{
-		current_time = time_in_seconds();
-	}
+	void update_accumulator();
 
-	void update_delta_time()
-	{
-		if (paused)
-		{
-			current_time = time_in_seconds();
-			return;
-		}
+	void update_time();
 
-		double new_time = time_in_seconds();
-		double frame_time = time_scale * (new_time - current_time);
+	void update_delta_time();
 
-		if (frame_time > 2.0)
-		{
-			frame_time = dt;
-		}
+	double time_in_seconds();
 
-		current_time = new_time;
-		accumulator += frame_time;
-	}
-
-	double time_in_seconds()
-	{
-		return std::chrono::duration<double>(hires_clock::now() - initial_time).count();
-	}
-
-	double alpha()
-	{
-		return accumulator / dt;
-	}
+	double alpha();
 };
