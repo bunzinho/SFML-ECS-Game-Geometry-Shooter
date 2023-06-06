@@ -79,8 +79,6 @@ void Game::init(const std::string& path)
 
 void Game::run()
 {
-	m_clock.update_time();
-
 	while (m_running)
 	{
 		m_clock.update_delta_time();
@@ -99,10 +97,9 @@ void Game::run()
 			sMovement();
 			sCollision();
 			sLifespan();
-			m_currentFrame++;
+
 			m_clock.update_accumulator();
 		}
-
 		sRender();
 	}
 }
@@ -166,7 +163,9 @@ void Game::spawnEnemy()
 			std::cerr << "could not find enemy spawn position after 10 tries" << std::endl;
 			return;
 		}
-		std::cerr << m_clock.get_game_time() << " spawn collides with player, generating new spawn point" << std::endl;
+
+		// enemy spawn is too close to the player, try another random location
+		std::cerr << m_clock.get_game_time() << " enemy spawn is too close to the player, generating new spawn point" << std::endl;
 	}
 
 	auto vertices = static_cast<int>(Lerp((float)m_enemyConfig.verticiesMin, (float)m_enemyConfig.verticiesMax, random_float()));
@@ -177,7 +176,7 @@ void Game::spawnEnemy()
 
 	auto entity = m_entities.addEntity("enemy");
 	entity->cTransform = std::make_shared<CTransform>(spawn_position, Vec2(angle).normalized() * speed, 0.0f);
-	entity->cShape = std::make_shared<CShape>( m_enemyConfig.shapeRadius, vertices, color, outline, m_enemyConfig.outlineThickness);
+	entity->cShape = std::make_shared<CShape>(m_enemyConfig.shapeRadius, vertices, color, outline, m_enemyConfig.outlineThickness);
 	entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.collisionRadius);
 	entity->cScore = std::make_shared<CScore>(vertices * 100);
 
@@ -410,8 +409,7 @@ void Game::sRender()
 	{
 		if (m_should_interpoloate_physics)
 		{
-			auto alpha = static_cast<float>(m_clock.alpha());
-			auto interpolated_position = e->cTransform->pos * alpha + e->cTransform->last_pos * (1.0f - alpha);
+			auto interpolated_position = Vec2::Lerp(e->cTransform->last_pos, e->cTransform->pos, static_cast<float>(m_clock.alpha()));
 			e->cShape->circle.setPosition(interpolated_position.x, interpolated_position.y);
 		}
 		else {
@@ -424,26 +422,25 @@ void Game::sRender()
 	};
 
 	// Separate loops for draw order
-	for (const auto e : m_entities.getEntities("enemy"))
+	for (const auto &e : m_entities.getEntities("enemy"))
 	{
 		renderEntity(e);
 	}
-	for (const auto e : m_entities.getEntities("smallenemy"))
+	for (const auto &e : m_entities.getEntities("smallenemy"))
 	{
 		renderEntity(e);
 	}
-	for (const auto e : m_entities.getEntities("player"))
+	for (const auto &e : m_entities.getEntities("player"))
 	{
 		renderEntity(e);
 	}
-	for (const auto e : m_entities.getEntities("bullet"))
+	for (const auto &e : m_entities.getEntities("bullet"))
 	{
 		renderEntity(e);
 	}
 
 	m_text.setString("Score: " + std::to_string(m_score));
 	m_window.draw(m_text);
-
 	m_window.display();
 }
 
