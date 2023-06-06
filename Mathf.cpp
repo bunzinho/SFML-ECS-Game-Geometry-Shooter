@@ -17,7 +17,7 @@ float Clamp01(float value)
 
 float Lerp(const float a, const float b, const float t)
 {
-	return (1.0f - t) * a + b * Clamp01(t);
+	return (1.0f - t) * a + t * b;
 }
 
 float InvLerp(const float a, const float b, const float v)
@@ -43,7 +43,7 @@ double Clamp01(double value)
 
 double Lerp(const double a, const double b, const double t)
 {
-	return (1.0 - t) * a + b * Clamp01(t);
+	return (1.0 - t) * a + t * b;
 }
 
 double InvLerp(const double a, const double b, const double v)
