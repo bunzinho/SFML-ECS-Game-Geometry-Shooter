@@ -5,9 +5,9 @@
 #include "EntityManager.h"
 #include "Clock.h"
 
-struct PlayerConfig { int shapeRadius, collisionRadius, color_r, color_g, color_b, outline_r, outline_g, outline_b, outlineThickness, vertices; float speed; };
-struct EnemyConfig { int shapeRadius, collisionRadius, outline_r, outline_g, outline_b, outlineThickness, verticiesMin, verticiesMax; double lifetime, spawnInterval; float speedMin, speedMax; };
-struct BulletConfig { int shapeRadius, collisionRadius, color_r, color_g, color_b, outline_r, outline_g, outline_b, outlineThickness, vertices; double lifetime; float speed; };
+struct PlayerConfig { float shapeRadius, collisionRadius; int color_r, color_g, color_b, outline_r, outline_g, outline_b, vertices; float outlineThickness, speed; };
+struct EnemyConfig { float shapeRadius, collisionRadius; int outline_r, outline_g, outline_b, verticiesMin, verticiesMax; float outlineThickness;  double lifetime, spawnInterval; float speedMin, speedMax; };
+struct BulletConfig { float shapeRadius, collisionRadius; int color_r, color_g, color_b, outline_r, outline_g, outline_b, vertices; float outlineThickness;  double lifetime; float speed; };
 
 class Game
 {
@@ -38,6 +38,8 @@ class Game
 	void sEnemySpawner();                   // System: Spawns Enemies
 	void sCollision();                      // System: Collisions
 	void sSinmovement();
+
+	void renderEntity(std::shared_ptr<Entity> entity);
 
 	bool checkCollision(std::shared_ptr<Entity> entity, std::shared_ptr<Entity> entity2);
 

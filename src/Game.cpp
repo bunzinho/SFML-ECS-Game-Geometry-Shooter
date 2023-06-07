@@ -195,7 +195,7 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> e)
 		auto entity = m_entities.addEntity("smallenemy");
 		auto angle = angleIncrement * i;
 
-		entity->cTransform = std::make_shared<CTransform>(e->cTransform->pos, Vec2(angle).normalized() * speed, 0);
+		entity->cTransform = std::make_shared<CTransform>(e->cTransform->pos, Vec2(angle).normalized() * speed, 0.0f);
 		entity->cShape = std::make_shared<CShape>(m_enemyConfig.shapeRadius * 0.5f, e->cShape->circle.getPointCount(), e->cShape->circle.getFillColor(), e->cShape->circle.getOutlineColor(), m_enemyConfig.outlineThickness);
 		entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.collisionRadius * 0.5f);
 		entity->cLifespan = std::make_shared<CLifespan>(m_enemyConfig.lifetime, m_clock.get_game_time());
@@ -401,25 +401,25 @@ void Game::sEnemySpawner()
 	spawnEnemy();
 }
 
+void Game::renderEntity(std::shared_ptr<Entity> e)
+{
+	if (m_should_interpoloate_physics)
+	{
+		auto interpolated_position = Vec2::Lerp(e->cTransform->last_pos, e->cTransform->pos, static_cast<float>(m_clock.alpha()));
+		e->cShape->circle.setPosition(interpolated_position.x, interpolated_position.y);
+	}
+	else {
+		e->cShape->circle.setPosition(e->cTransform->pos.x, e->cTransform->pos.y);
+	}
+
+	e->cShape->circle.setRotation(e->cTransform->angle);
+
+	m_window.draw(e->cShape->circle);
+}
+
 void Game::sRender()
 {
 	m_window.clear();
-
-	auto renderEntity = [&](std::shared_ptr<Entity> e)
-	{
-		if (m_should_interpoloate_physics)
-		{
-			auto interpolated_position = Vec2::Lerp(e->cTransform->last_pos, e->cTransform->pos, static_cast<float>(m_clock.alpha()));
-			e->cShape->circle.setPosition(interpolated_position.x, interpolated_position.y);
-		}
-		else {
-			e->cShape->circle.setPosition(e->cTransform->pos.x, e->cTransform->pos.y);
-		}
-
-		e->cShape->circle.setRotation(e->cTransform->angle);
-
-		m_window.draw(e->cShape->circle);
-	};
 
 	// Separate loops for draw order
 	for (const auto &e : m_entities.getEntities("enemy"))
