@@ -169,7 +169,7 @@ void Game::spawnEnemy()
 	}
 
 	auto vertices = static_cast<int>(Lerp((float)m_enemyConfig.verticiesMin, (float)m_enemyConfig.verticiesMax, random_float()));
-	auto angle = 2.0f*pi * random_float();
+	auto angle = tau * random_float();
 	auto outline = sf::Color(m_enemyConfig.outline_r, m_enemyConfig.outline_g, m_enemyConfig.outline_b);
 	auto color = sf::Color(static_cast<sf::Uint8>(random_float() * 255), static_cast<sf::Uint8>(random_float() * 255), static_cast<sf::Uint8>(random_float() * 255));
 
@@ -189,7 +189,7 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> e)
 	auto speed = Lerp(m_enemyConfig.speedMin, m_enemyConfig.speedMax, random_float());
 	auto vertices = e->cShape->circle.getPointCount();
 
-	auto angleIncrement = ((2*pi) / (vertices));
+	auto angleIncrement = tau / vertices;
 	for (size_t i = 0; i < vertices; ++i)
 	{
 		auto entity = m_entities.addEntity("smallenemy");
@@ -485,9 +485,12 @@ void Game::sUserInput()
 				break;
 			case sf::Keyboard::F2:
 				m_entities.clearEntitiesByTag("enemy");
+				m_entities.clearEntitiesByTag("smallenemy");
+				std::cout << "enemies cleared" << std::endl;
 				break;
 			case sf::Keyboard::F10:
 				m_should_interpoloate_physics = !m_should_interpoloate_physics;
+				std::cout << "interpolate rendering: " << m_should_interpoloate_physics << std::endl;
 				break;
 			}
 			break;

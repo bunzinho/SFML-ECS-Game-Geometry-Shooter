@@ -1,7 +1,8 @@
 #pragma once
 #include <random>
 
-constexpr float pi = 3.14159265358979323846f;
+constexpr float pi  = 3.141592f;
+constexpr float tau = 6.283185f;
 
 inline float random_float()
 {
