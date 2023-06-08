@@ -83,15 +83,14 @@ void Game::run()
 	{
 		m_clock.update_delta_time();
 
+		sUserInput();
 		if (m_paused)
 		{
-			sUserInput();
 			continue;
 		}
 
 		while (m_clock.is_tick_ready())
 		{
-			sUserInput();
 			m_entities.update();
 			sEnemySpawner();
 			sMovement();
@@ -491,6 +490,12 @@ void Game::sUserInput()
 			case sf::Keyboard::F10:
 				m_should_interpoloate_physics = !m_should_interpoloate_physics;
 				std::cout << "interpolate rendering: " << m_should_interpoloate_physics << std::endl;
+				break;
+			case sf::Keyboard::Up:
+				std::cout << "timescale changed: " << m_clock.add_time_scale(0.1) << std::endl;
+				break;
+			case sf::Keyboard::Down:
+				std::cout << "timescale changed: " << m_clock.add_time_scale(-0.1) << std::endl;
 				break;
 			}
 			break;

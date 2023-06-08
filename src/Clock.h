@@ -19,19 +19,19 @@ private:
 
 public:
 
-	double get_frame_time();
+	double get_frame_time() const;
 
 	void set_paused(bool pause);
 
 	bool is_paused() const;
 
-	double get_game_time();
+	double get_game_time() const;
 
-	double get_starting_physics_time();
+	double get_starting_physics_time() const;
 
-	double delta_time();
+	double delta_time() const;
 
-	bool is_tick_ready();
+	bool is_tick_ready() const;
 
 	void update_accumulator();
 
@@ -39,7 +39,9 @@ public:
 
 	void update_delta_time();
 
-	double time_in_seconds();
+	double time_in_seconds() const;
 
-	double alpha();
+	double alpha() const;
+
+	double add_time_scale(double);
 };
