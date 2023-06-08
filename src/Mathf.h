@@ -1,4 +1,5 @@
 #pragma once
+
 #include <random>
 
 constexpr float pi  = 3.141592f;

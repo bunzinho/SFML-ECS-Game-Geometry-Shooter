@@ -1,5 +1,5 @@
-#include "Vec2.h"
 #include <cmath>
+#include "Vec2.h"
 
 Vec2::Vec2()
 {

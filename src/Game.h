@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Common.h"
-#include "Entity.h"
 #include "EntityManager.h"
 #include "Clock.h"
 
