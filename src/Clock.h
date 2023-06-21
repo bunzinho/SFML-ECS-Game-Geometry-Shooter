@@ -4,7 +4,7 @@
 
 class Clock
 {
-	typedef std::chrono::high_resolution_clock hires_clock;
+	using hires_clock = std::chrono::high_resolution_clock;
 
 private:
 
