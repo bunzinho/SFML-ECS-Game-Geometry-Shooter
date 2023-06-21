@@ -3,6 +3,7 @@
 #include <chrono>
 #include "Game.h"
 #include "Mathf.h"
+#include "inicpp.h"
 
 Game::Game(const std::string& config)
 {
@@ -11,59 +12,79 @@ Game::Game(const std::string& config)
 
 void Game::init(const std::string& path)
 {
-	struct {
+	struct windowsettings {
 		unsigned int width;
 		unsigned int height;
 		unsigned int frameLimit;
 		unsigned int fullscreen;
 	} window = { 1280u, 720u, 60u, 0u };
 
-	std::ifstream file(path);
-	while (file.good())
-	{
-		std::string option;
-		file >> option;
-		if (option == "Window")
-		{
-			file >> window.width >> window.height >> window.frameLimit >> window.fullscreen;
-		}
-		else if (option == "Font")
-		{
-			struct {
-				std::string path; unsigned int size; int r; int g; int b;
-			} font = { "", 12, 127, 127, 127 };
-			file >> font.path >> font.size >> font.r >> font.g >> font.b;
-			m_font.loadFromFile(font.path);
-			m_text.setFont(m_font);
-			m_text.setCharacterSize(font.size);
-			m_text.setPosition(10, 10);
-			m_text.setFillColor(sf::Color(font.r, font.g, font.b));
-		}
-		else if (option == "Player")
-		{
-			file >> m_playerConfig.shapeRadius >> m_playerConfig.collisionRadius >> m_playerConfig.speed
-				>> m_playerConfig.color_r >> m_playerConfig.color_g >> m_playerConfig.color_b
-				>> m_playerConfig.outline_r >> m_playerConfig.outline_g >> m_playerConfig.outline_b
-				>> m_playerConfig.outlineThickness >> m_playerConfig.vertices;
-		}
-		else if (option == "Enemy")
-		{
-			file >> m_enemyConfig.shapeRadius >> m_enemyConfig.collisionRadius >> m_enemyConfig.speedMin >> m_enemyConfig.speedMax
-				>> m_enemyConfig.outline_r >> m_enemyConfig.outline_g >> m_enemyConfig.outline_b >> m_enemyConfig.outlineThickness
-				>> m_enemyConfig.verticiesMin >> m_enemyConfig.verticiesMax >> m_enemyConfig.lifetime >> m_enemyConfig.spawnInterval;
-		}
-		else if (option == "Bullet")
-		{
-			file >> m_bulletConfig.shapeRadius >> m_bulletConfig.collisionRadius >> m_bulletConfig.speed
-				>> m_bulletConfig.color_r >> m_bulletConfig.color_g >> m_bulletConfig.color_b
-				>> m_bulletConfig.outline_r >> m_bulletConfig.outline_g >> m_bulletConfig.outline_b
-				>> m_bulletConfig.outlineThickness >> m_bulletConfig.vertices >> m_bulletConfig.lifetime;
-		}
-		else
-		{
-			std::cout << "Unknown config option" << std::endl;
-		}
-	}
+	ini::IniFileCaseInsensitive config;
+	config.load(path);
+
+	window.width      = config["window"]["width"].as<unsigned int>();
+	window.height     = config["window"]["height"].as<unsigned int>();
+	window.frameLimit = config["window"]["framelimit"].as<unsigned int>();
+	window.fullscreen = config["window"]["fullscreen"].as<unsigned int>();
+
+	auto& player = config["player"];
+	m_playerConfig.shapeRadius      = player["shaperadius"].as<float>();
+	m_playerConfig.collisionRadius  = player["collisionRadius"].as<float>();
+	m_playerConfig.speed            = player["speed"].as<float>();
+	m_playerConfig.color_r          = player["colorr"].as<int>();
+	m_playerConfig.color_g          = player["colorg"].as<int>();
+	m_playerConfig.color_b          = player["colorb"].as<int>();
+	m_playerConfig.outline_r        = player["outliner"].as<int>();
+	m_playerConfig.outline_g        = player["outlineg"].as<int>();
+	m_playerConfig.outline_b        = player["outlineb"].as<int>();
+	m_playerConfig.outlineThickness = player["outlinesize"].as<float>();
+	m_playerConfig.vertices         = player["vertices"].as<int>();
+
+	auto& enemy = config["enemy"];
+	m_enemyConfig.shapeRadius       = enemy["shaperadius"].as<float>();
+	m_enemyConfig.collisionRadius   = enemy["collisionRadius"].as<float>();
+	m_enemyConfig.speedMin          = enemy["speedmin"].as<float>();
+	m_enemyConfig.speedMax          = enemy["speedmax"].as<float>();
+	m_enemyConfig.outline_r         = enemy["outliner"].as<int>();
+	m_enemyConfig.outline_g         = enemy["outlineg"].as<int>();
+	m_enemyConfig.outline_b         = enemy["outlineb"].as<int>();
+	m_enemyConfig.outlineThickness  = enemy["outlinesize"].as<float>();
+	m_enemyConfig.verticiesMin      = enemy["verticesmin"].as<int>();
+	m_enemyConfig.verticiesMax      = enemy["verticesmax"].as<int>();
+	m_enemyConfig.lifetime          = enemy["lifetime"].as<double>();
+	m_enemyConfig.spawnInterval     = enemy["spawninterval"].as<double>();
+
+	auto& bullet = config["bullet"];
+	m_bulletConfig.shapeRadius      = bullet["shaperadius"].as<float>();
+	m_bulletConfig.collisionRadius  = bullet["collisionRadius"].as<float>();
+	m_bulletConfig.speed            = bullet["speed"].as<float>();
+	m_bulletConfig.color_r          = bullet["colorr"].as<int>();
+	m_bulletConfig.color_g          = bullet["colorg"].as<int>();
+	m_bulletConfig.color_b          = bullet["colorb"].as<int>();
+	m_bulletConfig.outline_r        = bullet["outliner"].as<int>();
+	m_bulletConfig.outline_g        = bullet["outlineg"].as<int>();
+	m_bulletConfig.outline_b        = bullet["outlineb"].as<int>();
+	m_bulletConfig.outlineThickness = bullet["outlinesize"].as<float>();
+	m_bulletConfig.vertices         = bullet["vertices"].as<int>();
+	m_bulletConfig.lifetime         = bullet["lifetime"].as<double>();
+
+	auto& font_ini = config["font"];
+
+	struct {
+		std::string path; unsigned int size; int r; int g; int b;
+	} font = { "", 12, 127, 127, 127 };
+
+	font.path = font_ini["path"].as<std::string>();
+	font.size = font_ini["size"].as<unsigned int>();
+	font.r = font_ini["r"].as<int>();
+	font.g = font_ini["g"].as<int>();
+	font.b = font_ini["b"].as<int>();
+
+	m_font.loadFromFile(font.path);
+	m_text.setFont(m_font);
+	m_text.setCharacterSize(font.size);
+	m_text.setPosition(10, 10);
+	m_text.setFillColor(sf::Color(font.r, font.g, font.b));
 
 	const std::string windowTitle = "SFML ECS Game Polygon Shooter";
 	if (window.fullscreen)

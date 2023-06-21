@@ -17,5 +17,6 @@
     <ClInclude Include=".\src\EntityManager.h" />
     <ClInclude Include=".\src\Mathf.h" />
     <ClInclude Include=".\src\Clock.h" />
+    <ClInclude Include="src\inicpp.h" />
   </ItemGroup>
 </Project>

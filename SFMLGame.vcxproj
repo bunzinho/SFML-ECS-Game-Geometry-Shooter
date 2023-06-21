@@ -27,6 +27,7 @@
     <ClInclude Include=".\src\Mathf.h" />
     <ClInclude Include=".\src\Clock.h" />
     <ClInclude Include=".\src\Vec2.h" />
+    <ClInclude Include="src\inicpp.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{08A10BC2-2DCF-4F95-A0B2-BA931971AEEA}</ProjectGuid>

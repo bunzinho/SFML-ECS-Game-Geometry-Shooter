@@ -1,5 +1,0 @@
-Window 1280 720 240 0
-Font fonts/OpenSans-Medium.ttf 24 255 255 255
-Player 32 32 480 5 5 5 255 0 0 4 8
-Enemy 32 32 60 240 255 255 255 2 3 8 2 1
-Bullet 10 10 840 255 255 255 255 255 255 2 20 1
