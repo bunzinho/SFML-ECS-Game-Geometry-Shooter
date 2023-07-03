@@ -10,7 +10,7 @@ private:
 
 	hires_clock::time_point initial_time = hires_clock::now();
 	double t = 0.0;
-	const double dt = 1.0/30;
+	const double dt = 1.0/30.0;
 	double frame_time = 0.0;
 	double time_scale = 1.0;
 

@@ -35,6 +35,7 @@ class Game
 	void sRender();                         // System: Render / Drawing
 	void sEnemySpawner();                   // System: Spawns Enemies
 	void sCollision();                      // System: Collisions
+	void sActions();
 	void sSinmovement();
 
 	void renderEntity(std::shared_ptr<Entity> entity);

@@ -1,7 +1,6 @@
 #include "EntityManager.h"
 
 EntityManager::EntityManager()
-	: m_totalEntities(0)
 {
 
 }
