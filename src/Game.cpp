@@ -87,15 +87,9 @@ void Game::init(const std::string& path)
 	m_text.setFillColor(sf::Color(font.r, font.g, font.b));
 
 	constexpr auto windowTitle = "SFML ECS Game Polygon Shooter";
-	if (window.fullscreen)
-	{
-		m_window.create(sf::VideoMode(window.width, window.height), windowTitle, sf::Style::Fullscreen);
-	}
-	else
-	{
-		m_window.create(sf::VideoMode(window.width, window.height), windowTitle);
-	}
-
+	sf::Uint32 windowStyle = window.fullscreen ? sf::Style::Fullscreen : sf::Style::Default;
+	
+	m_window.create(sf::VideoMode(window.width, window.height), windowTitle, windowStyle);
 	m_window.setFramerateLimit(window.frameLimit);
 
 	spawnPlayer();
